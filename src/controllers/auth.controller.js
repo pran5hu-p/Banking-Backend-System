@@ -1,5 +1,6 @@
 const userModel = require("../models/user.model.js")
 const jwt = require("jsonwebtoken")
+const emailService = require("../services/email.service.js")
 
 async function userRegister(req, res) {
     const {email, name, password} = req.body;
@@ -20,7 +21,9 @@ async function userRegister(req, res) {
     const token= jwt.sign({
         userId: user._id,   
     }, process.env.JWT_SECRET, {expiresIn: "3d"})
+
     res.cookie("token", token)
+
     res.status(201).json({
         user:{
             _id: user._id,
@@ -29,6 +32,8 @@ async function userRegister(req, res) {
         },
         token: token
     })
+
+    await emailService.sendRegistrationEmail(user.email, user.name);
 }
 
 async function userLogin(req, res) {
